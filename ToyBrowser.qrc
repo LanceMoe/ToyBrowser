@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/ToyBrowser">
+        <file alias="add_page">icons/add_page.png</file>
+        <file alias="back">icons/back.png</file>
+        <file alias="clipboard">icons/clipboard.png</file>
+        <file alias="cross">icons/cross.png</file>
+        <file alias="lock">icons/lock.png</file>
+        <file alias="next">icons/next.png</file>
+        <file alias="penguin">icons/penguin.png</file>
+        <file alias="question">icons/question.png</file>
+        <file alias="renew">icons/renew.png</file>
+        <file alias="save">icons/save.png</file>
+    </qresource>
+</RCC>
