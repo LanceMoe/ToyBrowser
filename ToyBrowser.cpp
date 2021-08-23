@@ -1,7 +1,7 @@
 ﻿#include "ToyBrowser.h"
 
 ToyBrowser::ToyBrowser(QWidget *parent)
-    : QMainWindow(parent), m_tabs(new QTabWidget()), m_urlbar(new QLineEdit()) {
+    : QMainWindow(parent), m_tabs(new QTabWidget(this)), m_urlbar(new QLineEdit(this)) {
     //ui.setupUi(this);
     this->setWindowTitle("ToyBrowser");
     this->setWindowIcon(QIcon(":/ToyBrowser/penguin"));
@@ -43,10 +43,10 @@ ToyBrowser::ToyBrowser(QWidget *parent)
     setCentralWidget(m_tabs);
 
     // 关联事件按钮回调
-    connect(backBtn, &QAction::triggered, this, [this] {((QWebEngineView *)(m_tabs->currentWidget()))->back(); });
-    connect(nextBtn, &QAction::triggered, this, [this] {((QWebEngineView *)(m_tabs->currentWidget()))->forward(); });
-    connect(stopBtn, &QAction::triggered, this, [this] {((QWebEngineView *)(m_tabs->currentWidget()))->stop(); });
-    connect(reloadBtn, &QAction::triggered, this, [this] {((QWebEngineView *)(m_tabs->currentWidget()))->reload(); });
+    connect(backBtn, &QAction::triggered, this, [this] {(dynamic_cast<QWebEngineView *>(m_tabs->currentWidget()))->back(); });
+    connect(nextBtn, &QAction::triggered, this, [this] {(dynamic_cast<QWebEngineView *>(m_tabs->currentWidget()))->forward(); });
+    connect(stopBtn, &QAction::triggered, this, [this] {(dynamic_cast<QWebEngineView *>(m_tabs->currentWidget()))->stop(); });
+    connect(reloadBtn, &QAction::triggered, this, [this] {(dynamic_cast<QWebEngineView *>(m_tabs->currentWidget()))->reload(); });
     connect(newtabBtn, &QAction::triggered, this, [this] {addNewTab(QUrl(""), "New tab"); });
 
     // 标签页空白处双击->新建标签页
@@ -70,7 +70,7 @@ void ToyBrowser::closeCurrentTab(int index) {
         return;
     }
 
-    QWebEngineView *webview = (QWebEngineView *)m_tabs->widget(index);
+    QWebEngineView *webview = dynamic_cast<QWebEngineView *>(m_tabs->widget(index));
     webview->close();
 
     m_tabs->removeTab(index);
@@ -91,7 +91,7 @@ void ToyBrowser::renewUrlbar(const QUrl &url, QWebEngineView *webview) {
 }
 
 void ToyBrowser::currentTabChanged(int index) {
-    QWebEngineView *webview = (QWebEngineView *)m_tabs->currentWidget();
+    QWebEngineView *webview = dynamic_cast<QWebEngineView *>(m_tabs->currentWidget());
     renewUrlbar(webview->url(), webview);
 }
 
@@ -100,12 +100,12 @@ void ToyBrowser::jumpToUrl() {
     if (url.scheme() == QStringLiteral("")) {
         url.setScheme("http");
     }
-    QWebEngineView *webview = (QWebEngineView *)m_tabs->currentWidget();
+    QWebEngineView *webview = dynamic_cast<QWebEngineView *>(m_tabs->currentWidget());
     webview->setUrl(url);
 }
 
 void ToyBrowser::addNewTab(const QUrl &url, const QString &label) {
-    QWebEngineView *webview = new QWebEngineView();
+    QWebEngineView *webview = new QWebEngineView(m_tabs);
     webview->setAttribute(Qt::WA_DeleteOnClose);
     webview->setUrl(url);
 
@@ -117,15 +117,15 @@ void ToyBrowser::addNewTab(const QUrl &url, const QString &label) {
         [this, index, webview](int progress) {
             if (webview == m_tabs->widget(index)) {
                 m_tabs->setTabText(index, webview->page()->title());
-            } else {
-                // 设置标签可移动的话 index 可能被打乱：m_tabs->setMovable(true);
-                for (int i = 0; i < m_tabs->count(); ++i) {
-                    if (i == index) {
-                        continue;
-                    }
-                    if (webview == m_tabs->widget(i)) {
-                        m_tabs->setTabText(i, webview->page()->title());
-                    }
+                return;
+            }
+            // 设置标签可移动的话 index 可能被打乱：m_tabs->setMovable(true);
+            for (int i = 0; i < m_tabs->count(); ++i) {
+                if (i == index) {
+                    continue;
+                }
+                if (webview == m_tabs->widget(i)) {
+                    m_tabs->setTabText(i, webview->page()->title());
                 }
             }
         });
